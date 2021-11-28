@@ -9,7 +9,7 @@ export const ConnectMongoDb = (handler: NextApiHandler) =>
     if (!mongoose.connections[0].readyState) {
       const { DB_CONNECTION_STRING } = process.env;
       if (!DB_CONNECTION_STRING) {
-        return response.status(500).json({ msg: 'ENV Database connection not provided' })
+        return response.status(500).json({ msg: 'ENV Database not found' })
       }
       await mongoose.connect(DB_CONNECTION_STRING);
     }
