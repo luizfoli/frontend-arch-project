@@ -25,21 +25,21 @@ const handleEndpoint = async (
         return response.status(405).json({error: errorMsg});
     }
 
-    const { username, password } = request.body as LoginRequest;
+    const body = request.body as LoginRequest;
 
-    if(!username) {
+    if(!body.username) {
         const errorMsg = `Username invalid or not informed`;
         console.log(`{jwt: ${""}, error: ${errorMsg}}`)
         return response.status(400).json({error: errorMsg});
     }
 
-    if(!password) {
+    if(!body.password) {
         const errorMsg = `Password invalid or not informed`;
         console.log(`{jwt: ${""}, error: ${errorMsg}}`)
         return response.status(400).json({error: errorMsg});
     }
 
-    const user = await findExistingUser(username, password);
+    const user = await findExistingUser(body.username, body.password);
 
     if(user) {
         const token = jwt.sign({_id: user._id}, PRIVATE_KEY);
@@ -61,7 +61,7 @@ export async function findExistingUser(username: string, password: string) {
         password: md5(password)
     });
 
-    return user[0];
+    return user;
 }
 
 
