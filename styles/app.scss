@@ -1,0 +1,39 @@
+@import '~bootstrap/scss/bootstrap';
+
+html {
+    height: 100%;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+body {
+    height: 100%;
+}
+
+#__next {
+    height: 100%;
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    -webkit-box-pack: center;
+    -webkit-box-align: center;
+    padding: 0;
+}
+
+@import './config.scss';
+@import './login.scss';
+@import './header.scss';
+@import './footer.scss';
+
+
+button {
+    width: 100%;
+    padding: 15px;
+    margin-top: 35px;
+    background-color: $primaryColor;
+    border-radius: 12px;
+    color: #fff;
+    border: 0;
+}
+

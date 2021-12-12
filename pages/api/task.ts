@@ -7,42 +7,145 @@ import { JwtValidator } from "../../middlewares/JwtValidator";
 import { TaskRequest } from "../../types/requests/TaskRequest";
 import { DefaultResponseMessage } from "../../types/responses/DefaultResponseMessage";
 import { Task } from "../../models/Task";
+import { GetTasksParams } from "../../types/requests/GetTaskParams";
 
 const handleEndpoint = async (
   request: NextApiRequest,
   response: NextApiResponse<DefaultResponseMessage>
 ) => {
   
-  if (request.method !== "POST") {
+  if (request.method !== "POST" 
+    && request.method !== "PUT"
+    && request.method !== "DELETE"
+    && request.method !== "GET") {
     const errorMsg = `Method ${request.method} not accepted`;
     console.log(`{jwt: ${""}, error: ${errorMsg}}`);
     return response.status(405).json({ error: errorMsg });
   }
-
-  const userId = request.body.userId;
-  if(!userId) {
+  
+  if(!request.body.userId && !request.query.userId) {
     const errorMsg = `User id not informed`;
     console.log(`{jwt: ${""}, error: ${errorMsg}}`);
     return response.status(400).json({ error: errorMsg });
   }
 
-  const body = request.body as TaskRequest;
-  validBody(body, response);
+  const method = request.method;
+  if(method === "POST")
+    return await createTask(request, response)
+
+  else if (method === "PUT")
+    return await updateTask(request, response);
+
+  else if (method === "DELETE")
+    return await deleteTask(request, response);
+
+  else
+    return await getTasks(request, response);
+
+};
+
+export async function createTask(request: NextApiRequest, response: NextApiResponse) {
+
+  const body = request.body;
+  validateBody(body.name, body.previsionDate, response);
 
   const task = {
-    userId: userId,
+    userId: request.body.userId,
     name: body.name,
     previsionDate: moment(body.previsionDate).toDate()
   };
 
   await Task.create(task);
   return response.status(200).json({msg: "Task was created with success"});
+}
 
-};
+export async function updateTask(request: NextApiRequest, response: NextApiResponse) {
+  const body = request.body;
+  validateBody(body.name, body.previsionDate, response);
+  
+  const taskId = request.query?.id;
+  
+  if(!taskId) {
+    const errorMsg = `Task id not informed`;
+    console.log(`{jwt: ${""}, error: ${errorMsg}}`)
+    return response.status(400).json({ error: errorMsg });
+  }
 
-export function validBody(task: TaskRequest, resp: NextApiResponse) {
+  const task = await Task.findById(taskId);
+
+  if(!task && task.userId !== request.body.userId) {
+    const errorMsg = `Task not found`;
+    console.log(`{jwt: ${""}, error: ${errorMsg}}`)
+    return response.status(400).json({ error: errorMsg });
+  }
+
+  task.name = body.name;
+  task.previsionDate = body.previsionDate;
+  task.finishDate = body.finishDate;
+
+  await Task.findByIdAndUpdate({_id: taskId}, task);
+  return response.status(200).json({msg: "Task was updated with success"});
+}
+
+export async function deleteTask(request: NextApiRequest, response: NextApiResponse) {
+  const taskId = request.query?.id;
+  
+  if(!taskId) {
+    const errorMsg = `Task id not informed`;
+    console.log(`{jwt: ${""}, error: ${errorMsg}}`)
+    return response.status(400).json({ error: errorMsg });
+  }
+
+  const task = await Task.findById(taskId);
+
+  if(!task && task.userId !== request.body.userId) {
+    const errorMsg = `Task not found`;
+    console.log(`{jwt: ${""}, error: ${errorMsg}}`)
+    return response.status(400).json({ error: errorMsg });
+  }
+
+  await Task.findByIdAndDelete({_id: taskId}, task);
+  return response.status(200).json({msg: "Task was deleted"});
+}
+
+export async function getTasks(request: NextApiRequest, response: NextApiResponse) {
+
+  const userId = request.query.userId;
+  const params = request.body as GetTasksParams;
+  const query = {
+    userId: userId
+  } as any;
+
+  if(params?.previsionDateStart) {
+    query.previsionDate = {$gte: params?.previsionDateStart}
+  }
+
+  if(params?.previsionDateEnd) {
+
+    if(!query.query.previsionDate) {
+      query.previsionDate = {}
+    }
+
+    query.previsionDate.$lte = moment(params.previsionDateEnd).toDate();
+  }
+
+  if(params?.status) {
+    const status = parseInt(params.status);
+    switch(status) {
+      case 1 : query.finishDate = null;
+        break;
+      case 2 : query.finishDate = {$ne:null};
+        break;
+    }
+  }
+
+  const result = await Task.find(query);
+  return response.status(200).json({result})}
+
+
+export function validateBody(name: string, previsionDate: string, resp: NextApiResponse) {
     
-  if (!task.name || task.name.length < 2) {
+  if (!name || name.length < 2) {
       const errorMsg = `Invalid name`;
       console.log(`{jwt: ${""}, error: ${errorMsg}}`)
       return resp.status(400).json({ error: errorMsg });
@@ -51,8 +154,8 @@ export function validBody(task: TaskRequest, resp: NextApiResponse) {
   const now = moment();
   now.set({hour: 0, minute: 0, second: 0, millisecond: 0});
 
-  if (!task.previsionDate 
-    || moment(task.previsionDate).isBefore(now)) {
+  if (!previsionDate 
+    || moment(previsionDate).isBefore(now)) {
     const errorMsg = `Invalid prevision date`;
     console.log(`{jwt: ${""}, error: ${errorMsg}}`)
     return resp.status(400).json({ error: errorMsg });

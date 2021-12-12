@@ -29,12 +29,13 @@ export const JwtValidator = (handler: NextApiHandler) =>
   
       const token = request.headers["authorization"].substring(7);
       const decode = await jwt.verify(token, PRIVATE_KEY) as JwtPayload;
-  
-      if(request.body) {
-        request.body.userId = decode._id;
-      } else {
+
+      if(request.method === "GET") {
         request.query.userId = decode._id;
+      } else {
+        request.body.userId = decode._id;
       }
+      
     } catch(e) {
     }
 

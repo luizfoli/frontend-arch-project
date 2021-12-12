@@ -1,0 +1,49 @@
+@import './config.scss';
+
+.container-footer  {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+
+    button {
+        width: 90%;
+        display: flex;
+        flex-direction: row;
+        background-color: transparent;
+        border-color: $lightGreyColor;
+        color: $primaryColor;
+        font-size: 14px;
+        font-weight: bold;
+        padding: 5px 15px;
+        border-width: 2px;
+        border-style: solid;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    span {
+        display: none;
+    }
+
+}
+
+@media screen and (min-width:   1024px) {
+
+    .container-footer {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px;
+        border-bottom-width: 1px;
+        border-bottom-color: $lightGreyColor;
+        border-bottom-style: solid;
+    
+        button{
+            display: none;
+        }
+    }
+}
