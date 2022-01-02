@@ -11,6 +11,7 @@ export const Login: NextPage<LoginProps> = (LoginProps) => {
 
     const [login , setLogin] = useState("");
     const [password , setPassword] = useState("");
+    const [loginPage, setLoginPage] = useState(true);
     const [errorMsg, setErrorMsg] = useState("");
 
     const doLogin = async() => {
@@ -48,24 +49,40 @@ export const Login: NextPage<LoginProps> = (LoginProps) => {
         }
     };
 
+    const changeLoginPage = () => {
+
+    }
 
     return (
         <div className="container-login">
             <img className="logo" src="/logo.svg" alt="Logo FIAP" />
-            <div className="form">
-                {errorMsg && <p>{errorMsg}</p>}
-                <div className="input">
-                    <img src="/mail.svg" alt="Informe seu email" />
-                    <input type="text" placeholder="Informe seu email" 
-                        value={login} onChange={val => setLogin(val.target.value)} />
+
+                <div className="form">
+                            {errorMsg && <p>{errorMsg}</p>}
+                            { !loginPage && 
+                                <div className="input">
+                                    <img className="user-logo" src="/profile.svg" alt="Informe seu nome" />
+                                    <input type="text" placeholder="Informe seu nome" />
+                                </div>
+                            }
+                            <div className="input">
+                                <img src="/mail.svg" alt="Informe seu e-mail" />
+                                <input type="text" placeholder="Informe seu e-mail" 
+                                    value={login} onChange={val => setLogin(val.target.value)} />
+                            </div>
+                            <div className="input">
+                                <img src="/lock.svg" alt="Informe sua senha" />
+                                <input type="password" placeholder="Informe sua senha"
+                                    value={password}  onChange={val => setPassword(val.target.value)} />
+                            </div>
+                            <button onClick={doLogin}>
+                                {loginPage ? "Login" : "Inscrever-se" }
+                            </button>
+                    <div className="sign-up" onClick={() => setLoginPage(!loginPage)}>
+                        { loginPage ? <p>Ainda não possui um cadastro?<br/>Clique aqui para se inscrever</p>
+                        : <p>Já possui cadastro? <br/> Clique aqui para logar</p> }
+                    </div>
                 </div>
-                <div className="input">
-                <img src="/lock.svg" alt="Informe sua senha" />
-                    <input type="password" placeholder="Informe sua senha"
-                        value={password}  onChange={val => setPassword(val.target.value)} />
-                </div>
-                <button onClick={doLogin} >Login</button>
-            </div>
         </div>
     );
 }
