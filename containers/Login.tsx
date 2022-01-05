@@ -4,10 +4,10 @@ import {executeRequest}  from "../services/api";
 import { LoginResponse } from "../types/responses/LoginResponse";
 
 type LoginProps = {
-    setAccessToken(accessToken: string) : void
+    setToken(accessToken: string) : void
 };
 
-export const Login: NextPage<LoginProps> = (LoginProps) => {
+export const Login: NextPage<LoginProps> = ({setToken}) => {
 
     const [name, setName] = useState("");
     const [login , setLogin] = useState("");
@@ -17,13 +17,12 @@ export const Login: NextPage<LoginProps> = (LoginProps) => {
     const [errorMsg, setErrorMsg] = useState("");
 
     const doAction = async() => {
-
         if(loginPage) {
             await doLogin();
             return;
         }
 
-        doSignUp();
+        await doSignUp();
     };
 
     const doLogin = async () => {
@@ -46,21 +45,22 @@ export const Login: NextPage<LoginProps> = (LoginProps) => {
                 localStorage.setItem("email", loginResponse.email);
                 localStorage.setItem("name", loginResponse.name);
                 localStorage.setItem("accessToken", loginResponse.token);
-                LoginProps.setAccessToken(loginResponse.token);
+                setToken(loginResponse.token);
             }
 
-        } catch(error) {
+        } catch(error : any) {
             if(error?.response?.data?.error) {
                 setErrorMsg(error.response.data.error);
                 return;
             }
             const errorMsg = "Ocorreu um erro ao efetuar o login tente novamente"; 
             setErrorMsg(errorMsg);
-            console.log({error: errorMsg})
+            console.log({errorMessage: errorMsg, e: error})
         }
     }
 
-    const doSignUp = () => {
+    const doSignUp = async () => {
+        
         try {
 
             if(!name || !login || !password) {
@@ -68,8 +68,25 @@ export const Login: NextPage<LoginProps> = (LoginProps) => {
                 return;
             } 
 
+            setErrorMsg("");
 
-        } catch(error) {
+            const body = {
+                name: name,
+                email: login,
+                password
+            };
+
+            const response = await executeRequest("user", "POST", body);
+
+            if(response && response.data) {
+                const loginResponse = response.data as LoginResponse;
+                localStorage.setItem("email", login);
+                localStorage.setItem("name", name);
+                localStorage.setItem("accessToken", "tokenTeste");
+                setToken("tokenTeste");
+            }
+
+        } catch(error : any) {
             if(error?.response?.data?.error) {
                 setErrorMsg(error.response.data.error);
                 return;
