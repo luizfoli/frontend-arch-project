@@ -9,13 +9,24 @@ type LoginProps = {
 
 export const Login: NextPage<LoginProps> = (LoginProps) => {
 
+    const [name, setName] = useState("");
     const [login , setLogin] = useState("");
     const [password , setPassword] = useState("");
+
     const [loginPage, setLoginPage] = useState(true);
     const [errorMsg, setErrorMsg] = useState("");
 
-    const doLogin = async() => {
+    const doAction = async() => {
 
+        if(loginPage) {
+            await doLogin();
+            return;
+        }
+
+        doSignUp();
+    };
+
+    const doLogin = async () => {
         try {
             if(!login || !password) {
                 setErrorMsg("Favor preencher os campos login e senha");
@@ -47,10 +58,26 @@ export const Login: NextPage<LoginProps> = (LoginProps) => {
             setErrorMsg(errorMsg);
             console.log({error: errorMsg})
         }
-    };
+    }
 
-    const changeLoginPage = () => {
+    const doSignUp = () => {
+        try {
 
+            if(!name || !login || !password) {
+                setErrorMsg("Favor preencher os campos nome, login e senha");
+                return;
+            } 
+
+
+        } catch(error) {
+            if(error?.response?.data?.error) {
+                setErrorMsg(error.response.data.error);
+                return;
+            }
+            const errorMsg = "Ocorreu um erro ao efetuar o cadastro tente novamente"; 
+            setErrorMsg(errorMsg);
+            console.log({error: errorMsg})
+        }
     }
 
     return (
@@ -62,7 +89,8 @@ export const Login: NextPage<LoginProps> = (LoginProps) => {
                             { !loginPage && 
                                 <div className="input">
                                     <img className="user-logo" src="/profile.svg" alt="Informe seu nome" />
-                                    <input type="text" placeholder="Informe seu nome" />
+                                    <input type="text" placeholder="Informe seu nome" 
+                                        value={name} onChange={val => setName(val.target.value)}/>
                                 </div>
                             }
                             <div className="input">
@@ -75,7 +103,7 @@ export const Login: NextPage<LoginProps> = (LoginProps) => {
                                 <input type="password" placeholder="Informe sua senha"
                                     value={password}  onChange={val => setPassword(val.target.value)} />
                             </div>
-                            <button onClick={doLogin}>
+                            <button onClick={doAction}>
                                 {loginPage ? "Login" : "Inscrever-se" }
                             </button>
                     <div className="sign-up" onClick={() => setLoginPage(!loginPage)}>
