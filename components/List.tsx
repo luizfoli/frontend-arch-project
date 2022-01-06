@@ -115,7 +115,7 @@ export const List : NextPage<ListProps> = ({ tasks, getFilteredList }) => {
                     showModal={showModal}
                     errorMessage={errorMessage}
                     name={name}
-                    setName={setName}
+                    setName={setName}   
                     previsionDate={previsionDate}
                     setPrevisionDate={setPrevisionDate}
                     closeModal={closeModal}
