@@ -12,7 +12,7 @@ export const Header : NextPage<HeaderProps> = ({ sair, showModal}) => {
 
     useEffect(() => {
         if(typeof window !== 'undefined'){
-            const userName = localStorage.getItem('userName');
+            const userName = localStorage.getItem('name');
             if(userName){
               const fullName = userName.split(' ');
               if(fullName && fullName.length > 0){

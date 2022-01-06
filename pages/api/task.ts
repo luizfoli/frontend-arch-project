@@ -13,6 +13,8 @@ const handleEndpoint = async (
   request: NextApiRequest,
   response: NextApiResponse<DefaultResponseMessage>
 ) => {
+
+  const { userId } = request.body || request.query;
   
   if (request.method !== "POST" 
     && request.method !== "PUT"
@@ -40,7 +42,7 @@ const handleEndpoint = async (
     return await deleteTask(request, response);
 
   else
-    return await getTasks(request, response);
+    return await getTasks(request, response, userId);
 
 };
 
@@ -60,6 +62,9 @@ export async function createTask(request: NextApiRequest, response: NextApiRespo
 }
 
 export async function updateTask(request: NextApiRequest, response: NextApiResponse) {
+ 
+  console.log("entrou aqui")
+
   const body = request.body;
   validateBody(body.name, body.previsionDate, response);
   
@@ -72,18 +77,17 @@ export async function updateTask(request: NextApiRequest, response: NextApiRespo
   }
 
   const task = await Task.findById(taskId);
-
   if(!task && task.userId !== request.body.userId) {
     const errorMsg = `Task not found`;
     console.log(`{jwt: ${""}, error: ${errorMsg}}`)
     return response.status(400).json({ error: errorMsg });
   }
-
+  
   task.name = body.name;
-  task.previsionDate = body.previsionDate;
-  task.finishDate = body.finishDate;
+  task.previsionDate = moment(body.previsionDate);
+  task.finishDate = body.finishDate ? moment(body.finishDate) : null;
 
-  await Task.findByIdAndUpdate({_id: taskId}, task);
+  await Task.findByIdAndUpdate({ _id: task._id}, task);
   return response.status(200).json({msg: "Task was updated with success"});
 }
 
@@ -108,39 +112,44 @@ export async function deleteTask(request: NextApiRequest, response: NextApiRespo
   return response.status(200).json({msg: "Task was deleted"});
 }
 
-export async function getTasks(request: NextApiRequest, response: NextApiResponse) {
+export async function getTasks(request: NextApiRequest, 
+  response: NextApiResponse, userId: string) {
 
-  const userId = request.query.userId;
-  const params = request.body as GetTasksParams;
+  const params = request.query as GetTasksParams;
   const query = {
-    userId: userId
-  } as any;
+    userId
+  } as any
 
-  if(params?.previsionDateStart) {
-    query.previsionDate = {$gte: params?.previsionDateStart}
+  if(params?.previsionDateStart){
+    const startDate = moment(params?.previsionDateStart).toDate();
+    query.previsionDate = {$gte : startDate};
   }
 
-  if(params?.previsionDateEnd) {
+  if(params?.previsionDateEnd){
+      const endDate = moment(params?.previsionDateEnd).toDate();
+      
+      if(!query.previsionDate){
+          query.previsionDate = {}
+      }
 
-    if(!query.query.previsionDate) {
-      query.previsionDate = {}
-    }
-
-    query.previsionDate.$lte = moment(params.previsionDateEnd).toDate();
+      query.previsionDate.$lte = endDate;
   }
 
-  if(params?.status) {
-    const status = parseInt(params.status);
-    switch(status) {
-      case 1 : query.finishDate = null;
-        break;
-      case 2 : query.finishDate = {$ne:null};
-        break;
-    }
+  if(params?.status){
+      const status = parseInt(params?.status);
+      switch(status){
+          case 1 : query.finishDate = null;
+              break;
+          case 2 : query.finishDate = {$ne : null};
+      }
   }
+
+  console.log(query);
 
   const result = await Task.find(query);
-  return response.status(200).json({result})}
+  return response.status(200).json(result)
+
+}
 
 
 export function validateBody(name: string, previsionDate: string, resp: NextApiResponse) {
