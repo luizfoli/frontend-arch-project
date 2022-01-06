@@ -52,8 +52,8 @@ export const Home : NextPage<HomeProps> = ({setToken}) => {
 
     const sair = () =>{
         localStorage.removeItem('accessToken');
-        localStorage.removeItem('userName');
-        localStorage.removeItem('userEmail');
+        localStorage.removeItem('name');
+        localStorage.removeItem('email');
         setToken('');
     }
 
