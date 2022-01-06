@@ -79,11 +79,10 @@ export const Login: NextPage<LoginProps> = ({setToken}) => {
             const response = await executeRequest("user", "POST", body);
 
             if(response && response.data) {
-                const loginResponse = response.data as LoginResponse;
-                localStorage.setItem("email", login);
-                localStorage.setItem("name", name);
-                localStorage.setItem("accessToken", "tokenTeste");
-                setToken("tokenTeste");
+                localStorage.setItem("email", response.data.email);
+                localStorage.setItem("name", response.data.name);
+                localStorage.setItem("accessToken", response.data.token);
+                setToken(response.data.token);
             }
 
         } catch(error : any) {

@@ -14,7 +14,7 @@ const handleEndpoint = async (
   response: NextApiResponse<DefaultResponseMessage>
 ) => {
 
-  const { userId } = req.body || req.query;
+  const { userId } = request.body || request.query;
   
   if (request.method !== "POST" 
     && request.method !== "PUT"
@@ -42,7 +42,7 @@ const handleEndpoint = async (
     return await deleteTask(request, response);
 
   else
-    return await getTasks(request, response, "");
+    return await getTasks(request, response, userId);
 
 };
 
@@ -62,6 +62,9 @@ export async function createTask(request: NextApiRequest, response: NextApiRespo
 }
 
 export async function updateTask(request: NextApiRequest, response: NextApiResponse) {
+ 
+  console.log("entrou aqui")
+
   const body = request.body;
   validateBody(body.name, body.previsionDate, response);
   
@@ -74,18 +77,17 @@ export async function updateTask(request: NextApiRequest, response: NextApiRespo
   }
 
   const task = await Task.findById(taskId);
-
   if(!task && task.userId !== request.body.userId) {
     const errorMsg = `Task not found`;
     console.log(`{jwt: ${""}, error: ${errorMsg}}`)
     return response.status(400).json({ error: errorMsg });
   }
-
+  
   task.name = body.name;
-  task.previsionDate = body.previsionDate;
-  task.finishDate = body.finishDate;
+  task.previsionDate = moment(body.previsionDate);
+  task.finishDate = body.finishDate ? moment(body.finishDate) : null;
 
-  await Task.findByIdAndUpdate({_id: taskId}, task);
+  await Task.findByIdAndUpdate({ _id: task._id}, task);
   return response.status(200).json({msg: "Task was updated with success"});
 }
 
@@ -142,8 +144,10 @@ export async function getTasks(request: NextApiRequest,
       }
   }
 
+  console.log(query);
+
   const result = await Task.find(query);
-  return response.status(200).json({result})
+  return response.status(200).json(result)
 
 }
 
